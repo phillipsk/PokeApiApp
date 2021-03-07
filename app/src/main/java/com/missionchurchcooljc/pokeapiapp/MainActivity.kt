@@ -26,19 +26,22 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         // use coroutines to avoid call adapter
-        coroutineScope.launch {
-            callApi()
-        }
+        callApi()
     }
 
 
-    private suspend fun callApi() {
+    private fun callApi() {
 //        TODO: handle long running request
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerView_list)
-        val response = apiService.listResults()
-        Log.d("pokemon", response.pokeList.joinToString())
         recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = PokeAdapter(response)
+
+        coroutineScope.launch(Dispatchers.IO) {
+            val response = apiService.listResults()
+            launch(Dispatchers.Main) {
+                Log.d("pokemon", response.pokeList.joinToString())
+                recyclerView.adapter = PokeAdapter(response)
+            }
+        }
     }
 }
 
